@@ -1,6 +1,0 @@
-constructor(string _message)
-event MessageChanged(string newMessage)
-function getMessage() view returns (string)
-function message() view returns (string)
-function owner() view returns (address)
-function setMessage(string _message) returns (void)
