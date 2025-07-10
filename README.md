@@ -1,18 +1,50 @@
-# Sample Hardhat Project
+# first_fhe_contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+This project is a Hardhat-based smart contract implementation for creating and managing multi-item Likert scale questionnaires on the Ethereum blockchain. The main contract is `LikertMultiItemQuestionnaire`, which enables decentralized creation, publication, response collection, and analysis of questionnaires.
 
-Try running some of the following tasks:
+## Main Features
+- **Multi-Item Likert Questionnaire Creation**: The contract owner can create questionnaires with multiple questions and customizable Likert scales (2-10).
+- **Question & Respondent Limits**: Supports setting a maximum number of questions (up to 20) and respondents.
+- **Questionnaire Publishing & Closing**: Questionnaires can be published and closed manually or automatically when the respondent quota is reached.
+- **On-Chain Response Storage**: Respondents can answer all questions, and their responses are stored on-chain.
+- **Automatic Statistics**: Supports calculation of average, minimum, maximum, and other statistics for each question.
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
+## Key Directory Structure
+- `contracts/` : Contains the main smart contract and related modules.
+- `scripts/`   : Scripts for deployment, artifact generation, and other utilities.
+- `test/`      : Automated tests for the smart contract.
+- `output/`    : Generated ABI, JSON, and contract interface outputs.
 
-MyContractModule#MyContract - 0x7Ad4103996C5C2C1AD6Da271740633593AD24af2
-NakedTokenModule#NakedToken - 0xcA92C3AbA05f6407eEeeeA160F15b6E7d6b4A0eb
-SingleQuestionSurveyModule#SingleQuestionSurvey - 0x477AAb17BA11d64143052Af5FBC68415CC1530f6
-FHE_SingleQuestionSurveyModule#FHE_SingleQuestionSurvey - 0x8Cf669b854eE4eb0CDa996D3972BA1B02E750692
+## Installation
+1. **Clone the repository**
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+3. **Configure environment**
+   - Create a `.env` file and fill in the required variables (e.g., `INFURA_API_KEY`, `PRIVATE_KEY`, etc).
+
+## Important Commands
+- **Compile contracts**
+  ```bash
+  npx hardhat compile
+  ```
+- **Test contracts**
+  ```bash
+  npx hardhat test
+  ```
+- **Deploy to local network**
+  ```bash
+  npx hardhat node
+  npx hardhat run scripts/deploy.ts --network localhost
+  ```
+- **Generate artifacts**
+  ```bash
+  npx hardhat generate-artifacts --contract LikertMultiItemQuestionnaire
+  ```
+
+## Usage Example
+See `scripts/deploy.ts` for deployment examples, and `test/LikertMultiItemQuestionnaire.test.ts` for test cases.
+
+## License
+MIT
