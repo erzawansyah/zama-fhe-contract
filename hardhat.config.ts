@@ -177,7 +177,7 @@ task("generate-artifacts", "Generate contract artifacts (ABI, JSON, Interface)")
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.30",
+    version: "0.8.28",
     settings: {
       optimizer: {
         enabled: true,
