@@ -46,5 +46,8 @@ This project is a Hardhat-based smart contract implementation for creating and m
 ## Usage Example
 See `scripts/deploy.ts` for deployment examples, and `test/LikertMultiItemQuestionnaire.test.ts` for test cases.
 
+## Deployed Contract
+`LikertMultiItemQuestionnaire` - 0xC9D198192f38f55125cBEE792F0Ac3Aa5037ab61
+
 ## License
 MIT

@@ -80,6 +80,8 @@ contract LikertMultiItemQuestionnaire is ILikertMultiItemQuestionnaire {
         scaleLimit = _scaleLimit;
         questionLimit = _questionLimit;
         respondentLimit = _respondentLimit;
+        closed = true;
+        published = false;
 
         emit QuestionnaireEvents.QuestionnaireCreated(
             owner,
