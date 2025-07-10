@@ -1,57 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {FHE, euint8, ebool, eaddress, externalEuint8} from "@fhevm/solidity/lib/FHE.sol";
+import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+
 /// @title LikertSurvey
-contract LikertSurvey {
+contract ConfidentialLikertSurvey is SepoliaConfig {
+    using FHE for *;
     uint256 public surveyCount; // Total number of surveys created
 
-    mapping(uint256 => address) public surveyOwner; // Mapping from surveyId to the owner of the survey
+    // mapping(uint256 => address) public surveyOwner; // Mapping from surveyId to the owner of the survey
+    mapping(uint256 => eaddress) public surveyOwner; // No one know the owner of the survey
     mapping(uint256 => string) public surveyQuestion; // Mapping from surveyId to the survey question prompt
     mapping(uint256 => uint8) public scale; // Maximum Likert value for each survey (e.g., 5, 7, or 10)
 
-    mapping(uint256 => uint256) public totalResponses; // Total number of responses for each survey
-    mapping(uint256 => uint256) public totalScore; // Total score for each survey (sum of all responses)
-    mapping(uint256 => uint256) public sumOfSquares; // Total squared score for each survey (for standard deviation calculation)
-    mapping(uint256 => uint8) public minScore; // Minimum response value per survey
-    mapping(uint256 => uint8) public maxScore; // Maximum response value per survey
+    mapping(uint256 => euint256) public totalResponses; // Total number of responses for each survey
+    mapping(uint256 => euint256) public totalScore; // Total score for each survey (sum of all responses)
+    mapping(uint256 => euint256) public sumOfSquares; // Total squared score for each survey (for standard deviation calculation)
+    mapping(uint256 => euint8) public minScore; // Minimum response value per survey
+    mapping(uint256 => euint8) public maxScore; // Maximum response value per survey
 
-    mapping(uint256 => mapping(address => bool)) public hasAnswered;
-    mapping(uint256 => mapping(address => uint8)) public userResponse;
+    // mapping(uint256 => mapping(address => bool)) public hasAnswered;
+    // mapping(uint256 => mapping(address => uint8)) public userResponse;
+    mapping(uint256 => mapping(eaddress => bool)) public hasAnswered; // No one know if the user has answered the survey
+    mapping(uint256 => mapping(eaddress => euint8)) public userResponse; // No one know if the user has answered the survey
 
     event LikertSurveyCreated(
         uint256 indexed surveyId,
-        address indexed owner,
+        eaddress indexed owner,
         string prompt,
         uint8 maxLikert
     );
     event LikertAnswerSubmitted(
         uint256 indexed surveyId,
-        address indexed respondent,
-        uint8 value
+        eaddress indexed respondent,
+        euint8 value
     );
 
     /// @notice Create a new single-question Likert survey.
     function createLikertSurvey(
         string calldata prompt,
-        uint8 maxLikert
+        uint8 surveyScale
     ) external returns (uint256 surveyId) {
         require(bytes(prompt).length > 0, "Prompt cannot be empty");
         require(
-            maxLikert > 1 && maxLikert <= 10,
+            surveyScale > 1 && surveyScale <= 10,
             "Likert scale must be between 2 and 10"
         );
 
         surveyCount++;
         surveyId = surveyCount;
-        surveyOwner[surveyId] = msg.sender;
+        surveyOwner[surveyId] = FHE.asEaddress(msg.sender);
         surveyQuestion[surveyId] = prompt;
-        scale[surveyId] = maxLikert;
+        scale[surveyId] = surveyScale;
 
-        // Initialize min and max Likert given (for now, min is maxLikert, max is 0)
-        minScore[surveyId] = maxLikert;
+        // Initialize min and max Likert given (for now, min is surveyScale, max is 0)
+        minScore[surveyId] = surveyScale;
         maxScore[surveyId] = 0;
 
-        emit LikertSurveyCreated(surveyId, msg.sender, prompt, maxLikert);
+        emit LikertSurveyCreated(
+            surveyId,
+            FHE.asEaddress(msg.sender),
+            prompt,
+            surveyScale
+        );
     }
 
     /// @notice Submit a Likert-scale response for a given survey.
@@ -60,14 +72,20 @@ contract LikertSurvey {
             bytes(surveyQuestion[surveyId]).length > 0,
             "Survey does not exist"
         );
-        require(!hasAnswered[surveyId][msg.sender], "Already answered");
+        require(
+            !hasAnswered[surveyId][FHE.asEaddress(msg.sender)],
+            "Already answered"
+        );
         require(
             value >= 1 && value <= scale[surveyId],
-            "Likert value out of range"
+            "Response is out of range"
         );
+        eaddress encryptedSender = FHE.asEaddress(msg.sender);
+        euint8 encryptedValue = FHE.asEuint8(value);
 
-        hasAnswered[surveyId][msg.sender] = true;
-        userResponse[surveyId][msg.sender] = value;
+        hasAnswered[surveyId][encryptedSender] = true;
+        userResponse[surveyId][encryptedSender] = encryptedValue;
+
         totalResponses[surveyId]++;
         totalScore[surveyId] += value;
         sumOfSquares[surveyId] += uint256(value) * uint256(value);
@@ -80,7 +98,11 @@ contract LikertSurvey {
             maxScore[surveyId] = value;
         }
 
-        emit LikertAnswerSubmitted(surveyId, msg.sender, value);
+        emit LikertAnswerSubmitted(
+            surveyId,
+            encryptedSender,
+            FHE.asEuint8(value)
+        );
     }
 
     /// @notice Returns the average Likert score for a survey.
@@ -147,7 +169,7 @@ contract LikertSurvey {
     }
 
     /// @notice Returns the owner of a survey.
-    function getSurveyOwner(uint256 surveyId) external view returns (address) {
+    function getSurveyOwner(uint256 surveyId) external view returns (eaddress) {
         return surveyOwner[surveyId];
     }
 
