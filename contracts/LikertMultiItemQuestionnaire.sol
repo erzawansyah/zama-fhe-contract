@@ -168,6 +168,28 @@ contract LikertMultiItemQuestionnaire is ILikertMultiItemQuestionnaire {
     }
 
     // --- Query Functions ---
+    function getAllQuestions() external view returns (string[] memory) {
+        string[] memory result = new string[](totalQuestions);
+        for (uint256 i = 1; i <= totalQuestions; i++) {
+            result[i - 1] = questions[i];
+        }
+        return result;
+    }
+
+    function getUserResponses(
+        address user
+    ) external view returns (uint8[] memory) {
+        if (!hasResponded[user])
+            revert QuestionnaireErrors.UserHasNotResponded();
+
+        uint8[] memory userRes = new uint8[](totalQuestions);
+        for (uint256 i = 1; i <= totalQuestions; i++) {
+            userRes[i - 1] = responses[user][i];
+        }
+        return userRes;
+    }
+
+    // --- Statistical Query Functions ---
     function getQuestionAverage(
         uint256 questionId
     ) external view returns (uint256) {
@@ -205,27 +227,6 @@ contract LikertMultiItemQuestionnaire is ILikertMultiItemQuestionnaire {
             ? meanSquare - mean * mean
             : 0;
         return sqrt(variance);
-    }
-
-    function getAllQuestions() external view returns (string[] memory) {
-        string[] memory result = new string[](totalQuestions);
-        for (uint256 i = 1; i <= totalQuestions; i++) {
-            result[i - 1] = questions[i];
-        }
-        return result;
-    }
-
-    function getUserResponses(
-        address user
-    ) external view returns (uint8[] memory) {
-        if (!hasResponded[user])
-            revert QuestionnaireErrors.UserHasNotResponded();
-
-        uint8[] memory userRes = new uint8[](totalQuestions);
-        for (uint256 i = 1; i <= totalQuestions; i++) {
-            userRes[i - 1] = responses[user][i];
-        }
-        return userRes;
     }
 
     function getQuestionnaireStatistics()
