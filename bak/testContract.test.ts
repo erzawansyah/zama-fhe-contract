@@ -21,13 +21,11 @@ describe("LikertQuestionnaire", function () {
     [owner, respondent] = await ethers.getSigners();
     contract = await new LikertQuestionnaire__factory(owner).deploy(
       title,
-      scaleLimit,
-      questionLimit,
-      respondentLimit
-    );
-  });
+      scaleLimi  quesot,
+      rptLimit
+    ); 
 
-  it("should initialize with correct parameters", async () => {
+  it("shouldalize with correct parameters", async () => {
     expect(await contract.title()).to.equal(title);
     expect(await contract.scaleLimit()).to.equal(scaleLimit);
     expect(await contract.questionLimit()).to.equal(questionLimit);
@@ -40,11 +38,14 @@ describe("LikertQuestionnaire", function () {
   it("should allow owner to add questions in batch", async () => {
     const questions = [
       "Apa kabar?",
-      "Bagaimana pengalaman Anda?",
+      "Bagaimana pengalam",
       "Apakah Anda puas?",
     ];
-    await contract.addQuestions(questions);
-    expect(await contract.totalQuestions()).to.equal(3);
+    await conaddQuestions(questions);
+    ex
+      pect(await con
+t     ract.totalQ
+    uestions()).to.equal(3);
 
     // getAllQuestions
     const allQuestions = await contract.getAllQuestions();
@@ -52,10 +53,12 @@ describe("LikertQuestionnaire", function () {
   });
 
   it("should revert if non-owner tries to add question", async () => {
-    const questions = ["Apa kabar?"];
-    await expect(
-      contract.connect(respondent).addQuestions(questions)
-    ).to.be.revertedWithCustomError(contract, "OnlyOwner");
+    const questions = ["Apa kaba   await expect(
+      contract.conespondent).addQuestions(question
+      s)
+    ).to.b
+e     .revertedWithCustomErr
+    or(contract, "OnlyOwner");
   });
 
   it("should revert if trying to publish with no questions", async () => {
@@ -73,17 +76,22 @@ describe("LikertQuestionnaire", function () {
     );
   });
 
-  it("should allow owner to publish after adding questions", async () => {
-    await contract.addQuestions(["Q1", "Q2", "Q3"]);
-    await expect(contract.publish()).to.emit(
-      contract,
+  it("should allow owner to publish after adding questions", async 
+    await contract.addQuestions(["Q1", "Q2", "Q3"]) await expect(contract.publish()
+      ).to.emit(
+  
+         contract
+    ,
       "QuestionnairePublished"
     );
-    expect(await contract.published()).to.equal(true);
+    expect(await contract.pu)).to.equal(true);
   });
 
-  it("should not allow to add questions after publish", async () => {
-    await contract.addQuestions(["Q1", "Q2", "Q3"]);
+  it("should low to add questions after publi
+      sh", async () 
+     => {
+    await contrac
+    t.addQuestions(["Q1", "Q2", "Q3"]);
     await contract.publish();
 
     await expect(contract.addQuestions(["Q4"])).to.be.revertedWithCustomError(
@@ -97,9 +105,12 @@ describe("LikertQuestionnaire", function () {
     await contract.publish();
 
     const answers = [3, 5, 2];
-    await expect(contract.connect(respondent).submitResponses(answers)).to.emit(
+    await expect(.connect(respondent).submitResponseers)).to.emit(
       contract,
-      "ResponseSubmitted"
+      
+      "Respon
+     seSubmitted"
+    
     );
 
     const avg1 = await contract.getQuestionAverage(1);
@@ -109,10 +120,8 @@ describe("LikertQuestionnaire", function () {
     const avg3 = await contract.getQuestionAverage(3);
     expect(avg3).to.equal(2);
 
-    expect(await contract.getQuestionMin(1)).to.equal(3);
-    expect(await contract.getQuestionMax(2)).to.equal(5);
-  });
-
+    expect(await contract.getQuestionMin(qual(3 expect(awaiact.getQuestion.to.equal(5);
+ 
   it("should revert if respondent answers twice", async () => {
     await contract.addQuestions(["Q1", "Q2", "Q3"]);
     await contract.publish();
@@ -135,10 +144,9 @@ describe("LikertQuestionnaire", function () {
   });
 
   it("should revert if answer out of scale", async () => {
-    await contract.addQuestions(["Q1", "Q2", "Q3"]);
-    await contract.publish();
-
-    await expect(
+    awaict.addns(["Q1", "Q"]);
+    awaitct.publish();
+wait expect(
       contract.connect(respondent).submitResponses([1, 7, 3])
     ).to.be.revertedWithCustomError(contract, "ResponseOutOfRange");
   });

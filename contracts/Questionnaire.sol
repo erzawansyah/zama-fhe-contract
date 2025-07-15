@@ -1,22 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./interfaces/ILikertQuestionnaire.sol";
+import "./interfaces/IQuestionnaire.sol";
 import "./modules/QuestionnaireErrors.sol";
 import "./modules/QuestionnaireEvents.sol";
 
-contract LikertQuestionnaire is ILikertQuestionnaire {
-    // --- Constant Variables ---
+contract Questionnaire is IQuestionnaire {
+    // --- Constant Variables and Enum---
     uint256 private constant maxQuestionLimit = 20;
+    enum QuestionnaireStatus {
+        Initialized,
+        Draft,
+        Published,
+        Closed,
+        Trashed
+    }
 
     // --- State Variables ---
-    address public owner;
     string public title;
+    string public metadataCID;
+    address public owner;
     uint8 public scaleLimit;
     uint256 public questionLimit;
     uint256 public respondentLimit;
-    bool public published;
-    bool public closed;
+    QuestionnaireStatus public status;
 
     uint256 public totalQuestions;
     uint256 public totalRespondents;
@@ -31,24 +38,65 @@ contract LikertQuestionnaire is ILikertQuestionnaire {
     mapping(uint256 => uint8) public questionMaxScore;
 
     // --- Modifiers ---
+    // This modifier ensures that the function can only be executed by contract owner
     modifier onlyOwner() {
         if (msg.sender != owner) revert QuestionnaireErrors.OnlyOwner();
         _;
     }
 
+    // Modifier untuk memastikan fungsi hanya bisa dijalankan jika status questionnaire adalah Initialized
+    modifier onlyInitialized() {
+        if (status != QuestionnaireStatus.Initialized) {
+            revert QuestionnaireErrors.StatusNotInitialized();
+        }
+        _;
+    }
+
+    // Modifier untuk memastikan fungsi hanya bisa dijalankan jika status questionnaire adalah Draft
+    modifier onlyDraft() {
+        if (status != QuestionnaireStatus.Draft) {
+            revert QuestionnaireErrors.StatusNotDraft();
+        }
+        _;
+    }
+
+    // Modifier untuk memastikan fungsi hanya bisa dijalankan jika status questionnaire adalah Published
     modifier onlyPublished() {
-        if (!published) revert QuestionnaireErrors.QuestionnaireNotPublished();
+        if (status != QuestionnaireStatus.Published) {
+            revert QuestionnaireErrors.StatusNotPublished();
+        }
+        _;
+    }
+
+    // Modifier untuk memastikan fungsi hanya bisa dijalankan jika status questionnaire adalah Closed
+    modifier onlyClosed() {
+        if (status != QuestionnaireStatus.Closed) {
+            revert QuestionnaireErrors.StatusNotClosed();
+        }
+        _;
+    }
+
+    modifier notInTrash() {
+        if (status == QuestionnaireStatus.Trashed) {
+            revert QuestionnaireErrors.QuestionnaireAlreadyDeleted();
+        }
         _;
     }
 
     modifier notClosed() {
-        if (closed) revert QuestionnaireErrors.QuestionnaireHasClosed();
+        if (status == QuestionnaireStatus.Closed) {
+            revert QuestionnaireErrors.QuestionnaireHasClosed();
+        }
         _;
     }
 
-    modifier notPublished() {
-        if (published)
-            revert QuestionnaireErrors.QuestionnaireAlreadyPublished();
+    modifier canDelete() {
+        if (
+            status != QuestionnaireStatus.Initialized &&
+            status != QuestionnaireStatus.Draft
+        ) {
+            revert QuestionnaireErrors.CannotBeDeleted();
+        }
         _;
     }
 
@@ -80,11 +128,11 @@ contract LikertQuestionnaire is ILikertQuestionnaire {
         scaleLimit = _scaleLimit;
         questionLimit = _questionLimit;
         respondentLimit = _respondentLimit;
-        closed = true;
-        published = false;
+        status = QuestionnaireStatus.Initialized;
 
         emit QuestionnaireEvents.QuestionnaireCreated(
             owner,
+            block.timestamp,
             _title,
             _scaleLimit,
             _questionLimit,
@@ -92,47 +140,65 @@ contract LikertQuestionnaire is ILikertQuestionnaire {
         );
     }
 
+    // --- Set metadata for deployed Questionnaire ---
+    // Only can be executed when questionnaire status is initialized
+    function setMetadata(
+        string calldata _metadataCID
+    ) external onlyOwner onlyInitialized {
+        if (bytes(_metadataCID).length == 0) {
+            revert QuestionnaireErrors.QuestionnaireMetadataCIDEmpty();
+        }
+        metadataCID = _metadataCID;
+
+        emit QuestionnaireEvents.MetadataUpdated(_metadataCID);
+    }
+
     // --- Questionnaire Management ---
-    function addQuestion(
-        string calldata _question
-    ) internal onlyOwner notPublished {
+    function addQuestion(string calldata _question) internal {
         if (bytes(_question).length == 0)
             revert QuestionnaireErrors.EmptyQuestion();
         if (totalQuestions >= questionLimit)
             revert QuestionnaireErrors.MaxQuestionsReached();
 
         totalQuestions++;
-        questions[totalQuestions] = _question;
+        uint256 questionId = totalQuestions;
+        questions[questionId] = _question;
 
-        questionMinScore[totalQuestions] = scaleLimit;
-        questionMaxScore[totalQuestions] = 0;
+        questionMinScore[questionId] = scaleLimit;
+        questionMaxScore[questionId] = 0;
 
-        emit QuestionnaireEvents.QuestionAdded(totalQuestions, _question);
+        emit QuestionnaireEvents.QuestionAdded(questionId, _question);
     }
 
     function addQuestions(
         string[] calldata _questions
-    ) external onlyOwner notPublished {
+    ) external onlyOwner onlyInitialized {
         for (uint256 i = 0; i < _questions.length; i++) {
             addQuestion(_questions[i]);
         }
+        status = QuestionnaireStatus.Draft;
     }
 
-    function publish() external onlyOwner notPublished {
+    function publish() external onlyOwner onlyDraft {
         if (totalQuestions == 0) revert QuestionnaireErrors.MustHaveQuestions();
-        published = true;
+        status = QuestionnaireStatus.Published;
         emit QuestionnaireEvents.QuestionnairePublished(block.timestamp);
     }
 
-    function closeQuestionnaire() external onlyOwner onlyPublished notClosed {
-        closed = true;
+    function closeQuestionnaire() external onlyOwner onlyPublished {
+        status = QuestionnaireStatus.Closed;
         emit QuestionnaireEvents.QuestionnaireClosed(block.timestamp);
+    }
+
+    function deleteQuestionnaire() external onlyOwner canDelete {
+        status = QuestionnaireStatus.Trashed;
+        emit QuestionnaireEvents.QuestionnaireDeleted(block.timestamp);
     }
 
     // --- Respondent Actions ---
     function submitResponses(
         uint8[] calldata _responses
-    ) external onlyPublished notClosed {
+    ) external onlyPublished {
         if (hasResponded[msg.sender])
             revert QuestionnaireErrors.AlreadyResponded();
         if (_responses.length != totalQuestions)
@@ -164,7 +230,7 @@ contract LikertQuestionnaire is ILikertQuestionnaire {
         emit QuestionnaireEvents.ResponseSubmitted(msg.sender, block.timestamp);
 
         if (totalRespondents >= respondentLimit) {
-            closed = true;
+            status = QuestionnaireStatus.Closed;
             emit QuestionnaireEvents.QuestionnaireClosed(block.timestamp);
         }
     }
@@ -237,16 +303,12 @@ contract LikertQuestionnaire is ILikertQuestionnaire {
         returns (
             uint256 respondents,
             uint256 questionsCount,
-            bool isPublished,
-            bool isClosed,
             uint256 slotsRemaining
         )
     {
         return (
             totalRespondents,
             totalQuestions,
-            published,
-            closed,
             respondentLimit > totalRespondents
                 ? respondentLimit - totalRespondents
                 : 0

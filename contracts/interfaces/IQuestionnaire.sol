@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title ILikertQuestionnaire
+/// @title IQuestionnaire
 /// @notice Interface for a Likert-type multi-item Questionnaire contract.
 /// @dev This defines the standard events and function signatures for managing questionaries with multiple Likert-scale questions.
-interface ILikertQuestionnaire {
+interface IQuestionnaire {
     /// @notice Add a new question to the Questionnaire. Only callable by the owner.
     /// @param _questions The text of the question to add.
     function addQuestions(string[] calldata _questions) external;
@@ -57,8 +57,6 @@ interface ILikertQuestionnaire {
     /// @notice Get overall Questionnaire statistics.
     /// @return respondents Total number of respondents so far.
     /// @return questionsCount Total number of questions.
-    /// @return isPublished True if Questionnaire is published.
-    /// @return isClosed True if Questionnaire is closed.
     /// @return slotsRemaining Number of respondent slots remaining.
     function getQuestionnaireStatistics()
         external
@@ -66,8 +64,6 @@ interface ILikertQuestionnaire {
         returns (
             uint256 respondents,
             uint256 questionsCount,
-            bool isPublished,
-            bool isClosed,
             uint256 slotsRemaining
         );
 }
