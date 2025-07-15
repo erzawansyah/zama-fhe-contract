@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title ILikertMultiItemQuestionnaire
+/// @title ILikertQuestionnaire
 /// @notice Interface for a Likert-type multi-item Questionnaire contract.
 /// @dev This defines the standard events and function signatures for managing questionaries with multiple Likert-scale questions.
-interface ILikertMultiItemQuestionnaire {
+interface ILikertQuestionnaire {
     /// @notice Add a new question to the Questionnaire. Only callable by the owner.
     /// @param _questions The text of the question to add.
     function addQuestions(string[] calldata _questions) external;

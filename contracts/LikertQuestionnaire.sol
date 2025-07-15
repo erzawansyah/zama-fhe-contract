@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./interfaces/ILikertMultiItemQuestionnaire.sol";
+import "./interfaces/ILikertQuestionnaire.sol";
 import "./modules/QuestionnaireErrors.sol";
 import "./modules/QuestionnaireEvents.sol";
 
-contract LikertMultiItemQuestionnaire is ILikertMultiItemQuestionnaire {
+contract LikertQuestionnaire is ILikertQuestionnaire {
     // --- Constant Variables ---
     uint256 private constant maxQuestionLimit = 20;
 

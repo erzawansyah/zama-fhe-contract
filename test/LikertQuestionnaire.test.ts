@@ -1,15 +1,15 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import {
-  LikertMultiItemQuestionnaire,
-  LikertMultiItemQuestionnaire__factory,
+  LikertQuestionnaire,
+  LikertQuestionnaire__factory,
 } from "../typechain-types";
 import { Signer } from "ethers";
 
-describe("LikertMultiItemQuestionnaire", function () {
+describe("LikertQuestionnaire", function () {
   let owner: Signer;
   let respondent: Signer;
-  let contract: LikertMultiItemQuestionnaire;
+  let contract: LikertQuestionnaire;
 
   // Konfigurasi default
   const title = "Kuesioner Penelitian";
@@ -19,7 +19,7 @@ describe("LikertMultiItemQuestionnaire", function () {
 
   beforeEach(async () => {
     [owner, respondent] = await ethers.getSigners();
-    contract = await new LikertMultiItemQuestionnaire__factory(owner).deploy(
+    contract = await new LikertQuestionnaire__factory(owner).deploy(
       title,
       scaleLimit,
       questionLimit,
@@ -60,9 +60,12 @@ describe("LikertMultiItemQuestionnaire", function () {
 
   it("should revert if trying to publish with no questions", async () => {
     // Gunakan factory TypeChain
-    const tempContract = await new LikertMultiItemQuestionnaire__factory(
-      owner
-    ).deploy(title, scaleLimit, questionLimit, respondentLimit);
+    const tempContract = await new LikertQuestionnaire__factory(owner).deploy(
+      title,
+      scaleLimit,
+      questionLimit,
+      respondentLimit
+    );
 
     await expect(tempContract.publish()).to.be.revertedWithCustomError(
       tempContract,
@@ -191,10 +194,10 @@ describe("LikertMultiItemQuestionnaire", function () {
   });
 });
 
-describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
+describe("LikertQuestionnaire - Error Detection Tests", function () {
   let owner: Signer;
   let respondent: Signer;
-  let contract: LikertMultiItemQuestionnaire;
+  let contract: LikertQuestionnaire;
 
   // Konfigurasi default
   const title = "Kuesioner Penelitian";
@@ -204,7 +207,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
   beforeEach(async () => {
     [owner, respondent] = await ethers.getSigners();
-    contract = await new LikertMultiItemQuestionnaire__factory(owner).deploy(
+    contract = await new LikertQuestionnaire__factory(owner).deploy(
       title,
       scaleLimit,
       questionLimit,
@@ -215,7 +218,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
   describe("Constructor Error Tests", function () {
     it("should revert with empty title", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           "",
           scaleLimit,
           questionLimit,
@@ -226,7 +229,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert with invalid scale limit (too low)", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           title,
           1,
           questionLimit,
@@ -237,7 +240,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert with invalid scale limit (too high)", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           title,
           11,
           questionLimit,
@@ -248,7 +251,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert with invalid question limit (zero)", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           title,
           scaleLimit,
           0,
@@ -259,7 +262,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert with invalid question limit (exceeds max)", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           title,
           scaleLimit,
           21,
@@ -270,7 +273,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert with invalid respondent limit (zero)", async () => {
       await expect(
-        new LikertMultiItemQuestionnaire__factory(owner).deploy(
+        new LikertQuestionnaire__factory(owner).deploy(
           title,
           scaleLimit,
           questionLimit,
@@ -353,13 +356,9 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
     });
 
     it("should revert if trying to submit to unpublished questionnaire", async () => {
-      const unpublishedContract =
-        await new LikertMultiItemQuestionnaire__factory(owner).deploy(
-          title,
-          scaleLimit,
-          questionLimit,
-          respondentLimit
-        );
+      const unpublishedContract = await new LikertQuestionnaire__factory(
+        owner
+      ).deploy(title, scaleLimit, questionLimit, respondentLimit);
       await unpublishedContract.addQuestions(["Q1", "Q2", "Q3"]);
 
       await expect(
@@ -384,13 +383,14 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should revert when respondent limit reached", async () => {
       // Buat contract dengan respondent limit 3 untuk menguji error ini
-      const contractWithHigherLimit =
-        await new LikertMultiItemQuestionnaire__factory(owner).deploy(
-          title,
-          scaleLimit,
-          questionLimit,
-          3 // respondent limit = 3
-        );
+      const contractWithHigherLimit = await new LikertQuestionnaire__factory(
+        owner
+      ).deploy(
+        title,
+        scaleLimit,
+        questionLimit,
+        3 // respondent limit = 3
+      );
 
       await contractWithHigherLimit.addQuestions(["Q1", "Q2", "Q3"]);
       await contractWithHigherLimit.publish();
@@ -407,13 +407,14 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
       // Now test that trying to submit when already at limit gives RespondentLimitReached error
       // We need to create another contract and manually close it after reaching limit
-      const contractForLimitTest =
-        await new LikertMultiItemQuestionnaire__factory(owner).deploy(
-          title,
-          scaleLimit,
-          questionLimit,
-          2 // respondent limit = 2
-        );
+      const contractForLimitTest = await new LikertQuestionnaire__factory(
+        owner
+      ).deploy(
+        title,
+        scaleLimit,
+        questionLimit,
+        2 // respondent limit = 2
+      );
 
       await contractForLimitTest.addQuestions(["Q1", "Q2", "Q3"]);
       await contractForLimitTest.publish();
@@ -437,7 +438,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
       // kita akan test dengan cara yang berbeda - menggunakan mock atau custom scenario
 
       // Alternative: Test dengan melihat totalRespondents sebelum auto-close
-      const contractForCount = await new LikertMultiItemQuestionnaire__factory(
+      const contractForCount = await new LikertQuestionnaire__factory(
         owner
       ).deploy(
         title,
@@ -540,13 +541,14 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
   describe("Edge Cases and Complex Scenarios", function () {
     it("should handle questionnaire with maximum questions", async () => {
-      const maxQuestionContract =
-        await new LikertMultiItemQuestionnaire__factory(owner).deploy(
-          title,
-          scaleLimit,
-          20, // maximum questions
-          respondentLimit
-        );
+      const maxQuestionContract = await new LikertQuestionnaire__factory(
+        owner
+      ).deploy(
+        title,
+        scaleLimit,
+        20, // maximum questions
+        respondentLimit
+      );
 
       const questions = Array.from(
         { length: 20 },
@@ -563,7 +565,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
 
     it("should handle questionnaire with scale limit boundaries", async () => {
       // Test with minimum scale (2)
-      const minScaleContract = await new LikertMultiItemQuestionnaire__factory(
+      const minScaleContract = await new LikertQuestionnaire__factory(
         owner
       ).deploy(title, 2, questionLimit, respondentLimit);
 
@@ -575,7 +577,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
       ).to.emit(minScaleContract, "ResponseSubmitted");
 
       // Test with maximum scale (10)
-      const maxScaleContract = await new LikertMultiItemQuestionnaire__factory(
+      const maxScaleContract = await new LikertQuestionnaire__factory(
         owner
       ).deploy(title, 10, questionLimit, respondentLimit);
 
@@ -654,7 +656,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
   describe("Event Emission Tests", function () {
     it("should emit QuestionnaireCreated event on deployment", async () => {
       // Approach 1: Test dengan membuat contract baru dan verifikasi state
-      const contractFactory = new LikertMultiItemQuestionnaire__factory(owner);
+      const contractFactory = new LikertQuestionnaire__factory(owner);
 
       const testTitle = "Test Questionnaire";
       const testScale = 5;
@@ -684,7 +686,7 @@ describe("LikertMultiItemQuestionnaire - Error Detection Tests", function () {
     // Alternative approach jika ingin test event secara langsung
     it("should initialize contract with correct event emission", async () => {
       // Buat factory baru
-      const contractFactory = new LikertMultiItemQuestionnaire__factory(owner);
+      const contractFactory = new LikertQuestionnaire__factory(owner);
 
       // Deploy dan langsung test return values
       const deployTx = contractFactory.deploy("Event Test", 7, 4, 15);
