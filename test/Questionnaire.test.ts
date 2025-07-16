@@ -349,16 +349,16 @@ describe("Questionnaire", () => {
 
     it("Fungsi statistik mengembalikan nilai tepat", async () => {
       // Question 1
-      expect(await q.getQuestionAverage(1)).to.equal(4); // (3+5)/2
+      expect(await q.getQuestionAverage(1)).to.equal(4000000000000000000n); // (3+5)/2
       expect(await q.getQuestionMin(1)).to.equal(3);
       expect(await q.getQuestionMax(1)).to.equal(5);
-      expect(await q.getQuestionStandardDeviation(1)).to.equal(1); // √1
+      expect(await q.getQuestionStandardDeviation(1)).to.equal(1_000_000_000n); // deviasi 1
 
       // Question 2
-      expect(await q.getQuestionAverage(2)).to.equal(3);
+      expect(await q.getQuestionAverage(2)).to.equal(3000000000000000000n);
       expect(await q.getQuestionMin(2)).to.equal(1);
       expect(await q.getQuestionMax(2)).to.equal(5);
-      expect(await q.getQuestionStandardDeviation(2)).to.equal(2); // √4
+      expect(await q.getQuestionStandardDeviation(2)).to.equal(2_000_000_000n); // deviasi 2
     });
 
     it("Fungsi statistik gagal untuk questionId tidak valid", async () => {

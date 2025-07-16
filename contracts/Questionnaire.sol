@@ -405,7 +405,7 @@ contract Questionnaire {
         if (questionId == 0 || questionId > totalQuestions)
             revert QuestionnaireErrors.InvalidQuestionId();
         if (totalRespondents == 0) return 0;
-        return questionTotalScore[questionId] / totalRespondents;
+        return toWad(questionTotalScore[questionId]) / totalRespondents;
     }
 
     /**
@@ -446,12 +446,13 @@ contract Questionnaire {
         if (totalRespondents == 0) return 0;
 
         // Calculate mean and mean of squares
-        uint256 mean = questionTotalScore[questionId] / totalRespondents;
-        uint256 meanSquare = questionSumSquares[questionId] / totalRespondents;
+        uint256 mean = toWad(questionTotalScore[questionId]) / totalRespondents;
+        uint256 meanSquare = toWad(questionSumSquares[questionId]) /
+            totalRespondents;
 
         // Calculate variance (mean of squares - square of mean)
-        uint256 variance = meanSquare > mean * mean
-            ? meanSquare - mean * mean
+        uint256 variance = meanSquare > (mean * mean) / 1e18
+            ? meanSquare - (mean * mean) / 1e18
             : 0;
 
         return sqrt(variance);
@@ -494,6 +495,13 @@ contract Questionnaire {
     }
 
     // --- Internal Helper Functions ---
+
+    /**
+     * @dev Helper untuk mengalikan value dengan 1e18 (fixed-point)
+     */
+    function toWad(uint256 value) internal pure returns (uint256) {
+        return value * 1e18;
+    }
 
     /**
      * @dev Calculates the square root of a number using the Babylonian method
