@@ -1,4 +1,3 @@
-import "@nomicfoundation/hardhat-chai-matchers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Questionnaire, Questionnaire__factory } from "../typechain-types";
@@ -404,10 +403,10 @@ describe("Questionnaire", () => {
       const log =
         receipt && receipt.logs
           ? receipt.logs.find(
-              (l) =>
-                (q.interface.parseLog?.(l)?.name ?? "") ===
-                "QuestionnaireCreated"
-            )
+            (l) =>
+              (q.interface.parseLog?.(l)?.name ?? "") ===
+              "QuestionnaireCreated"
+          )
           : undefined;
       expect(log).to.not.be.undefined;
     });
