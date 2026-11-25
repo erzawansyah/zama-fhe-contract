@@ -1,13 +1,11 @@
-# Sample Hardhat Project
+# zama-fhe-contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+> **Status: Archived (2026)**
+>
+> - **Reason:** an early experiment with Zama's FHEVM before [fhedback](https://github.com/erzawansyah/fhedback); the code was merged there unchanged and is not developed further.
+> - **Created:** 2025
+> - **Moved to:** [`erzawansyah/fhedback` > `_legacy/contracts/zama-fhe`](https://github.com/erzawansyah/fhedback/tree/main/_legacy/contracts/zama-fhe)
+>
+> This repository is read-only and kept for history. Please open issues and pull requests in `fhedback`.
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
+Hardhat project used to try out fully homomorphic encryption (FHE) smart contracts with Zama's FHEVM. The original README was the default Hardhat sample text and has been replaced by this note.
